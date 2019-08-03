@@ -19,6 +19,7 @@ export class MapContainer extends Component {
     show: false,
     tag: '',
     renderMarkers: 0,
+    markers: [],
   };
 
   onMarkerClick = async event => {
@@ -48,8 +49,8 @@ export class MapContainer extends Component {
     this.handleShow();
   };
 
-  renderMarkers = locations =>
-    locations.map((marker, i) => (
+  renderMarkers = locations => {
+    let showMarkers = locations.map((marker, i) => (
       <Marker
         key={i}
         position={{
@@ -59,6 +60,8 @@ export class MapContainer extends Component {
         onClick={this.onMarkerClick}
       />
     ));
+    this.setState({ markers: showMarkers });
+  };
 
   handleSubmit = async () => {
     console.log('Handle submit executed');
@@ -114,7 +117,14 @@ export class MapContainer extends Component {
         defaultZoom={12}
         defaultCenter={{ lat: 30.2672, lng: -97.7431 }}
       >
-        {this.renderMarkers(locations)}
+        {/* make button click */}
+        <Button
+          onClick={() => {
+            console.log('button clicked');
+            this.renderMarkers(locations);
+          }}
+        />
+        {this.state.markers}
         <Modal show={this.state.show} onHide={this.handleShow}>
           <Modal.Header>
             <Modal.Title>Add a tag</Modal.Title>

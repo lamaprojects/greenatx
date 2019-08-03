@@ -55,6 +55,7 @@ export class App extends Component {
     this.setState({
       locations: [...this.state.locations, getData],
     });
+    
   };
 
   render() {

@@ -10,45 +10,23 @@ import './style.css';
 import { Modal, Button } from 'react-bootstrap';
 const axios = require('axios');
 
+// modal bring back data and edit
+// buttons for categories - render tags assoc
+// search bring back the marker
+// modal on load with instructions on how to use app
+
 export class MapContainer extends Component {
   // shouldn't set markers like this but fuck it for now
   state = {
     activeMarker: {},
     selectedPlace: {},
     showingInfoWindow: false,
-    show: false,
     tag: '',
     renderMarkers: 0,
+    show: false,
   };
 
-  onMarkerClick = async event => {
-    // console.log('props = ', props);
-    let latitude = event.latLng.lat();
-    let longitude = event.latLng.lng();
-    console.log('you clicked marker at', latitude, longitude);
-
-    let getData = await axios
-      .get(`/api/location/locations`, {
-        params: {
-          name: 'Flavio',
-        },
-      })
-      .then(response => response);
-
-    // let getData = await axios
-    //   .get(`/api/location/locations`, {
-    //     latitude,
-    //     longitude,
-    //   })
-    //   .then(response => response.data)
-    //   .catch(error => console.log(error));
-    console.log(getData.data);
-    this.setState({ latitude, longitude });
-
-    this.handleShow();
-  };
-
-  renderMarkers = locations =>
+  renderMarkers = (locations, onMarkerClick) =>
     locations.map((marker, i) => (
       <Marker
         key={i}
@@ -56,24 +34,36 @@ export class MapContainer extends Component {
           lat: parseFloat(marker.latitude),
           lng: parseFloat(marker.longitude),
         }}
-        onClick={this.onMarkerClick}
+        onClick={async event => {
+          const data = await onMarkerClick(event);
+          console.log(data);
+          this.setState({
+            show: true,
+            activeMarker: data,
+            tag: data.getData.tag,
+            data,
+          });
+        }}
       />
     ));
+  
+  filterMarkers = (locations) =>
+  locations.filter()
 
   handleSubmit = async () => {
-    console.log('Handle submit executed');
     let getData = await axios
       .put(`/api/location/locations`, {
-        latitude: this.state.latitude,
-        longitude: this.state.longitude,
+        latitude: this.state.activeMarker.latitude,
+        longitude: this.state.activeMarker.longitude,
         tag: this.state.tag,
+        category: this.state.category,
       })
       .then(response => response.data)
       .catch(error => console.log(error));
 
     console.log('Put Data method called', getData);
     this.setState({
-      activeMarker: null,
+      activeMarker: getData,
       showingInfoWindow: false,
       tag: '',
       show: false,
@@ -92,14 +82,13 @@ export class MapContainer extends Component {
     this.setState({ show: false, tag: '' });
   };
 
-  handleShow = () => {
-    this.setState({ show: true });
+  currentTag = event => {
+    return this.state.activeMarker;
   };
 
   handleInputChange = event => {
     // Getting the value and name of the input which triggered the change
     const { name, value } = event.target;
-
     // Updating the input's state
     this.setState({
       [name]: value,
@@ -107,19 +96,30 @@ export class MapContainer extends Component {
   };
 
   render() {
-    let { locations, onMapClicked } = this.props;
+    let { locations, onMapClicked, onMarkerClick } = this.props;
+
     return (
       <GoogleMap
-        onClick={onMapClicked}
+        onClick={async event => {
+          console.log('calling on click for google map');
+          const data = await onMapClicked(event);
+
+          this.setState({
+            show: true,
+            activeMarker: data,
+          });
+        }}
         defaultZoom={12}
         defaultCenter={{ lat: 30.2672, lng: -97.7431 }}
       >
-        {this.renderMarkers(locations)}
-        <Modal show={this.state.show} onHide={this.handleShow}>
+        {this.renderMarkers(locations, onMarkerClick)}
+        <Modal show={this.state.show}>
           <Modal.Header>
             <Modal.Title>Add a tag</Modal.Title>
           </Modal.Header>
           <Modal.Body>
+            {/* <div>{JSON.stringify(this.state.data)}</div> */}
+
             <form>
               <input
                 value={this.state.tag}
@@ -128,8 +128,59 @@ export class MapContainer extends Component {
                 type="text"
                 placeholder="Tag"
               />
+              <p className="text-dark">
+                Current Tag: {this.state.tag}
+              </p>
+              {/* <input
+                value={this.state.category}
+                name="category"
+                onChange={this.handleInputChange}
+                type="radio"
+                placeholder="Category"
+              /> */}
+
+              <br />
+              <label>
+                <input
+                  type="radio"
+                  name="category"
+                  value="parks"
+                  checked={this.state.category === 'parks'}
+                  onChange={this.handleInputChange}
+                />{' '}
+                Park
+              </label>
+              <br />
+
+              {/* //where are the notes */}
+
+              <label>
+                <input
+                  type="radio"
+                  name="category"
+                  value="water"
+                  checked={this.state.category === 'water'}
+                  onChange={this.handleInputChange}
+                />{' '}
+                Water
+              </label>
+              <br />
+
+              {/* //where are the notes */}
+              <label>
+                <input
+                  type="radio"
+                  name="category"
+                  value="large"
+                  checked={this.state.category === 'large'}
+                  onChange={this.handleInputChange}
+                />{' '}
+               ANother one
+              </label>
+              
             </form>
           </Modal.Body>
+          {/* //where are the notes */}
           <Modal.Footer>
             <Button variant="secondary" onClick={this.handleClose}>
               Close
@@ -141,6 +192,7 @@ export class MapContainer extends Component {
             >
               Save Changes
             </Button>
+            {/* //where are the notes */}
           </Modal.Footer>
         </Modal>
       </GoogleMap>

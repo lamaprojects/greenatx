@@ -19,10 +19,13 @@ class ExampleApp extends React.Component {
     if (!hasVisitedBefore) {
       this.setState({ hasVisitedBefore: false });
       localStorage.setItem("hasVisitedBefore", true);
-    //   this.setState({ showModal: true });
+      this.setState({ showModal: true });
     }
 
   }
+
+  //does this work
+  //please work
 
   handleOpenModal() {
     this.setState({ showModal: true });
